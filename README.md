@@ -29,8 +29,18 @@ git clone https://github.com/your-username/django-app.git
 ```bash
 pip install -r requirements.txt
 ```
-4. Make sure redis-server is running.
-5. Start celery
+4. Create a .env file and populate value from .env.example file.
+5. Run the database migration.
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+6. Start the server
+```bash
+python manage.py runserver
+```
+7. Make sure redis-server is running.
+8. Start celery
 
 ```bash
 celery -A video_subtitle_extractor worker -B -l info -Q parse_video
