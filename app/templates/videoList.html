@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>File Processing Status</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        {% for item in items %}
+        <div class="card">
+            <h5 class="card-header">Status: {{item.status}}</h5>
+            <div class="card-body">
+                <h5 class="card-title">FileName</h5>
+                <p class="card-text">{{item.name}}</p>
+                {% if item.status == "completed" %}
+                    <form id="searchForm">
+                        <div class="form-group">
+                            <label for="searchInput">Search Text:</label>
+                            <input type="text" class="form-control" id="search_text{{item.id}}" name="search_text">
+                        </div>
+                        <button type="button" onclick="search_input({{item.id}})" class="btn btn-primary">Search</button>
+                    </form>
+                {% endif %}
+            </div>
+            <div id="resultTableDiv{{item.id}}" style="display: none;">
+                <p>Search Results:</p>
+                <table id="resultTable{{item.id}}" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>StartTime</th>
+                            <th>EndTime</th>
+                            <th>Text</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Function to handle form submission and AJAX call
+        function search_input(video_id) {
+            event.preventDefault();
+
+            var search_text = $('#search_text'+video_id).val();
+            console.log("serar", search_text, video_id)
+
+            // Make AJAX call to API
+            $.ajax({
+                url: '{{host_url}}/search-text/',
+                method: 'POST',
+                data: { 
+                    search_string: search_text,
+                    video_id: video_id
+                },
+                success: function (response) {
+                    // Clear previous table content
+                    $('#resultTable'+video_id+' tbody').empty();
+
+                    // Generate table rows based on response data
+                    response["items"].forEach(function (item) {
+                        console.log("item", item)
+                        var startTime = item.StartTime.toString();
+                        var endTime = item.EndTime.toString();
+                        var text = item.Text.toString();
+
+                        // Append row to the table
+                        var newRow = '<tr><td>' + startTime + '</td><td>' + endTime + '</td><td>' + text + '</td></tr>';
+                        $('#resultTable'+video_id+' tbody').append(newRow);
+                    });
+
+                    // Show the table and hide the status indicator
+                    $('#resultTableDiv'+video_id).show();
+                    $('#statusIndicator').hide();
+                },
+                error: function (xhr, status, error) {
+                    // Display error message if the AJAX call fails
+                    $('#statusIndicator .card-text').text('Error occurred during the search: ' + error);
+                    $('#statusIndicator').removeClass('bg-info').addClass('bg-danger').show();
+                }
+            });
+        }
+
+        // Bind the form submit event to the handleSearchFormSubmit function
+        // $('#searchForm').submit(handleSearchFormSubmit);
+    </script>
+</body>
+
+</html>
